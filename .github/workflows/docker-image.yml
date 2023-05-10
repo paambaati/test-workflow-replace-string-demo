@@ -1,0 +1,35 @@
+name: Docker image build
+on:
+  push:
+    branches:
+      - main
+
+env:
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+jobs:
+  build_docker_image:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          git fetch origin
+          echo "VERSION=1.0.0" >> $GITHUB_ENV
+
+      - name: Set image tag name
+        shell: bash
+        run: |
+          echo "Branch name before fix = ${{ env.BRANCH_NAME }}"
+          BRANCH_NAME=$(echo "${{ env.BRANCH_NAME }}" | sed 's/\//-/g')
+          echo "Branch name before fix = ${BRANCH_NAME}"
+          echo "IMAGE_TAG=ghcr.io/my-org/my-app:${{ env.VERSION }}.${BRANCH_NAME}" >> $GITHUB_ENV
+
+      - name: Print image tag
+        run: |
+          echo "${{ env.IMAGE_TAG }}"
